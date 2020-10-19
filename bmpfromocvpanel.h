@@ -17,8 +17,8 @@
 // This class displays a wxBitmap originated from OpenCV
 // and also the time it took to obtain, convert, and display the bitmap.
 //
-// Color or font of the overlay text can be changed by left or right
-// doubleclick on the panel.
+// The color or font of the overlay text can be changed by left (color)
+// or right (font) doubleclick on the panel.
 
 class wxBitmapFromOpenCVPanel : public wxScrolledCanvas
 {

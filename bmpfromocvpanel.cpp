@@ -24,8 +24,8 @@ wxBitmapFromOpenCVPanel::wxBitmapFromOpenCVPanel(wxWindow* parent)
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     SetScrollRate(FromDIP(8), FromDIP(8));
-    // we need to this to prevent drawing artefacts
-    // due to the info "overlay" drawn over the bitmap
+    // We need to this to prevent drawing artefacts
+    // due to the info "overlay" which does not scroll with the bitmap.
     EnableScrolling(false, false);
 
     Bind(wxEVT_PAINT, &wxBitmapFromOpenCVPanel::OnPaint, this);
@@ -128,7 +128,8 @@ void wxBitmapFromOpenCVPanel::OnPaint(wxPaintEvent&)
         dc.DrawRectangle(r);
     }
 
-    // draw info "overlay"
+    // Draw info "overlay", always at the top left corner of the window
+    // regardless of how the bitmap is scrolled.
     const long            drawTime = stopWatch.Time();
     wxDCTextColourChanger textColourChanger(dc, m_overlayTextColour);
     wxDCFontChanger       fontChanger(dc, m_overlayFont);

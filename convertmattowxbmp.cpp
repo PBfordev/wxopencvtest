@@ -20,7 +20,7 @@ namespace
 {
 
 // Version optimized for Microsoft Windows.
-// matbitmap must be continous and matbitmap.cols % 4 must equal 0
+// matBitmap must be continous and matBitmap.cols % 4 must equal 0
 // as SetDIBits() requires the DIB rows to be DWORD-aligned.
 // Should not be called directly but only from ConvertMatBitmapTowxBitmap()
 // which does all the necessary debug checks.
@@ -30,12 +30,12 @@ bool ConvertMatBitmapTowxBitmapMSW(const cv::Mat& matBitmap, wxBitmap& bitmap)
     BITMAPINFO bitmapInfo{0};
     bool       success;
 
-    bitmapInfo.bmiHeader.biSize         = sizeof(BITMAPINFO) - sizeof(RGBQUAD);
-    bitmapInfo.bmiHeader.biWidth        = bitmap.GetWidth();
-    bitmapInfo.bmiHeader.biHeight       = 0 - bitmap.GetHeight();
-    bitmapInfo.bmiHeader.biPlanes       = 1;
-    bitmapInfo.bmiHeader.biBitCount     = 24;
-    bitmapInfo.bmiHeader.biCompression  = BI_RGB;
+    bitmapInfo.bmiHeader.biSize        = sizeof(BITMAPINFO) - sizeof(RGBQUAD);
+    bitmapInfo.bmiHeader.biWidth       = bitmap.GetWidth();
+    bitmapInfo.bmiHeader.biHeight      = 0 - bitmap.GetHeight();
+    bitmapInfo.bmiHeader.biPlanes      = 1;
+    bitmapInfo.bmiHeader.biBitCount    = 24;
+    bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
     success = ::SetDIBits(hScreenDC, bitmap.GetHBITMAP(), 0, bitmap.GetHeight(),
                           matBitmap.data, &bitmapInfo, DIB_RGB_COLORS) != 0;

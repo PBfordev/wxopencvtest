@@ -69,7 +69,6 @@ private:
     bool StartCameraThread();
     void DeleteCameraThread();
 
-
     void OnImage(wxCommandEvent&);
     void OnVideo(wxCommandEvent&);
     void OnWebCam(wxCommandEvent&);

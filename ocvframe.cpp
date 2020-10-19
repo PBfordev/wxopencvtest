@@ -323,7 +323,7 @@ bool OpenCVFrame::StartCameraThread()
         return false;
     }
 
-     return true;
+    return true;
 }
 
 void OpenCVFrame::DeleteCameraThread()
