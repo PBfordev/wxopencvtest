@@ -18,14 +18,16 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "convertmattowxbmp.h"
 #include "bmpfromocvpanel.h"
+#include "convertmattowxbmp.h"
 #include "ocvframe.h"
 
 // A frame was retrieved from WebCam or IP Camera.
 wxDEFINE_EVENT(wxEVT_CAMERA_FRAME, wxThreadEvent);
 // Could not retrieve a frame, consider connection to the camera lost.
 wxDEFINE_EVENT(wxEVT_CAMERA_EMPTY, wxThreadEvent);
+// An exception was thrown in the camera thread.
+wxDEFINE_EVENT(wxEVT_CAMERA_EXCEPTION, wxThreadEvent);
 
 //
 // Worker thread for retrieving images from WebCam or IP Camera
@@ -58,14 +60,15 @@ CameraThread::CameraThread(wxEvtHandler* eventSink, cv::VideoCapture* camera)
 
 wxThread::ExitCode CameraThread::Entry()
 {
-    wxStopWatch stopWatch;
+    wxStopWatch  stopWatch;
 
     while ( !TestDestroy() )
     {
+        CameraFrame* frame = nullptr;
+
         try
         {
-            CameraFrame*  frame = new CameraFrame;
-
+            frame = new CameraFrame;
             stopWatch.Start();
             (*m_camera) >> frame->matBitmap;
             frame->timeGet = stopWatch.Time();
@@ -79,18 +82,22 @@ wxThread::ExitCode CameraThread::Entry()
             }
             else // connection to camera lost
             {
-                wxThreadEvent* evt = new wxThreadEvent(wxEVT_CAMERA_EMPTY);
-
+                m_eventSink->QueueEvent(new wxThreadEvent(wxEVT_CAMERA_EMPTY));
                 delete frame;
-                m_eventSink->QueueEvent(evt);
                 break;
             }
         }
-        catch ( cv::Exception& e )
+        catch ( const std::exception& e )
         {
-            wxLogError("OpenCV exception: %s", e.msg);
+            wxThreadEvent* evt = new wxThreadEvent(wxEVT_CAMERA_EXCEPTION);
+
+            delete frame;
+            evt->SetString(e.what());
+            m_eventSink->QueueEvent(evt);
+            break;
         }
     }
+
     return static_cast<wxThread::ExitCode>(nullptr);
 }
 
@@ -103,7 +110,7 @@ OpenCVFrame::OpenCVFrame()
     wxPanel*    mainPanel = new wxPanel(this);
     wxBoxSizer* mainPanelSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL); // wxSlider and info button
+    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL); // Properties button and wxSlider
     wxButton*   button = nullptr;
 
     button = new wxButton(mainPanel, wxID_ANY, "&Image...");
@@ -151,6 +158,7 @@ OpenCVFrame::OpenCVFrame()
 
     Bind(wxEVT_CAMERA_FRAME, &OpenCVFrame::OnCameraFrame, this);
     Bind(wxEVT_CAMERA_EMPTY, &OpenCVFrame::OnCameraEmpty, this);
+    Bind(wxEVT_CAMERA_EXCEPTION, &OpenCVFrame::OnCameraException, this);
 }
 
 OpenCVFrame::~OpenCVFrame()
@@ -172,10 +180,12 @@ wxBitmap OpenCVFrame::ConvertMatToBitmap(const cv::Mat& matBitmap, long& timeCon
     time = stopWatch.Time();
 
     if ( !converted )
+    {
         wxLogError("Could not convert Mat to wxBitmap.");
-    else
-        timeConvert = time;
+        return wxBitmap();
+    }
 
+    timeConvert = time;
     return bitmap;
 }
 
@@ -232,7 +242,7 @@ void OpenCVFrame::UpdateFrameTitle()
 
 void OpenCVFrame::ShowVideoFrame(int frameNumber)
 {
-    int         captureFrameNumber = (int)(m_videoCapture->get(cv::CAP_PROP_POS_FRAMES));
+    const int   captureFrameNumber = (int)(m_videoCapture->get(cv::CAP_PROP_POS_FRAMES));
     cv::Mat     matBitmap;
     wxStopWatch stopWatch;
     long        timeGet = 0;
@@ -274,7 +284,7 @@ bool OpenCVFrame::StartCameraCapture(const wxString& address, const wxSize& reso
     Clear();
 
     {
-        wxWindowDisabler disabler(this);
+        wxWindowDisabler disabler;
         wxBusyCursor     busyCursor;
 
         if ( isDefaultWebCam )
@@ -456,7 +466,7 @@ void OpenCVFrame::OnIPCamera(wxCommandEvent&)
 {
     static wxString address = "rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream";
 
-    address = wxGetTextFromUser("Enter the protocol, address, port etc.",
+    address = wxGetTextFromUser("Enter the URL including protocol, address, port etc.",
                                 "IP camera", address, this);
 
     if ( address.empty() )
@@ -486,6 +496,7 @@ void OpenCVFrame::OnProperties(wxCommandEvent&)
     {
         const wxBitmap& bmp = m_bitmapPanel->GetBitmap();
 
+        wxCHECK_RET(bmp.IsOk(), "Invalid bitmap in m_bitmapPanel");
         properties.push_back(wxString::Format("Width: %d", bmp.GetWidth()));
         properties.push_back(wxString::Format("Height: %d", bmp.GetHeight()));
     }
@@ -563,5 +574,11 @@ void OpenCVFrame::OnCameraEmpty(wxThreadEvent&)
 {
     wxLogError("Connection to the camera lost.");
 
+    Clear();
+}
+
+void OpenCVFrame::OnCameraException(wxThreadEvent& evt)
+{
+    wxLogError("Exception in the camera thread: %s", evt.GetString());
     Clear();
 }

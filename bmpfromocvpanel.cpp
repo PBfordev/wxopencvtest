@@ -24,7 +24,7 @@ wxBitmapFromOpenCVPanel::wxBitmapFromOpenCVPanel(wxWindow* parent)
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     SetScrollRate(FromDIP(8), FromDIP(8));
-    // We need to this to prevent drawing artefacts
+    // We need to do this to prevent drawing artefacts
     // due to the info "overlay" which does not scroll with the bitmap.
     EnableScrolling(false, false);
 

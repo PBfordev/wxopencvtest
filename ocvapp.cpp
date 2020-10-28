@@ -14,12 +14,12 @@
 class OpenCVApp : public wxApp
 {
 public:
-	bool OnInit() override
-	{
-		SetVendorName("PB");
-		SetAppName("wxOpenCVTest");
+    bool OnInit() override
+    {
+        SetVendorName("PB");
+        SetAppName("wxOpenCVTest");
 
         (new OpenCVFrame)->Show();
         return true;
-	}
+    }
 }; wxIMPLEMENT_APP(OpenCVApp);

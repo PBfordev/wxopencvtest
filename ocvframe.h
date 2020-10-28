@@ -27,7 +27,7 @@ class CameraThread;
 
 
 // This class can open an OpenCV source of images (image file, video file,
-// default webcam, and IP camera) and display the images using wxBitmapFromOpenCVPanel.
+// default WebCam, and IP camera) and display the images using wxBitmapFromOpenCVPanel.
 class OpenCVFrame : public wxFrame
 {
 public:
@@ -74,12 +74,14 @@ private:
     void OnWebCam(wxCommandEvent&);
     void OnIPCamera(wxCommandEvent&);
     void OnClear(wxCommandEvent&);
+
     void OnProperties(wxCommandEvent&);
 
     void OnVideoSetFrame(wxCommandEvent& evt);
 
     void OnCameraFrame(wxThreadEvent& evt);
     void OnCameraEmpty(wxThreadEvent&);
+    void OnCameraException(wxThreadEvent& evt);
 };
 
 #endif // #ifndef OCVFRAME_H

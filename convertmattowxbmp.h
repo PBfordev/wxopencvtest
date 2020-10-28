@@ -17,7 +17,7 @@ class wxBitmap;
 
 /**
     @param matBitmap
-        Its data must be in BGR colorspace CV_8UC3 which is
+        Its data must be encoded as BGR CV_8UC3, which is
         probably the most common format for OpenCV images.
     @param bitmap
         It must be initialized to the same width and height as matBitmap
@@ -29,8 +29,8 @@ class wxBitmap;
     was about 25% faster then the portable one. MSW-optimized version
     is used when bitmap is a DIB and its width modulo 4 is 0.
 
-    In my testing on MSW with 3840x2160 image, the portable
-    version of conversion in the Debug build was more then
+    In my testing on MSW with MSVS using 3840x2160 image, the portable
+    version of conversion function in the Debug build was more then
     60 times slower than in the Release build.
 
     At least on MSW, initializing a wxBitmap takes quite some
