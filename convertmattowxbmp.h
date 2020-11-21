@@ -22,6 +22,8 @@ class wxBitmap;
     @param bitmap
         It must be initialized to the same width and height as matBitmap
         and its depth must be 24.
+    @return @true if the conversion succeeded, @false otherwise.
+
 
     On MS Windows, a MSW-optimized version is used if possible,
     the portable one otherwise. In my testing on MSW with
