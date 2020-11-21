@@ -83,7 +83,7 @@ wxThread::ExitCode CameraThread::Entry()
             else // connection to camera lost
             {
                 m_eventSink->QueueEvent(new wxThreadEvent(wxEVT_CAMERA_EMPTY));
-                delete frame;
+                wxDELETE(frame);
                 break;
             }
         }
@@ -91,11 +91,23 @@ wxThread::ExitCode CameraThread::Entry()
         {
             wxThreadEvent* evt = new wxThreadEvent(wxEVT_CAMERA_EXCEPTION);
 
-            delete frame;
+            wxDELETE(frame);
             evt->SetString(e.what());
             m_eventSink->QueueEvent(evt);
             break;
         }
+        catch ( ... )
+        {
+            wxThreadEvent* evt = new wxThreadEvent(wxEVT_CAMERA_EXCEPTION);
+
+            wxDELETE(frame);
+            evt->SetString("Unknown exception");
+            m_eventSink->QueueEvent(evt);
+            break;
+
+        }
+
+
     }
 
     return static_cast<wxThread::ExitCode>(nullptr);
@@ -329,7 +341,7 @@ bool OpenCVFrame::StartCameraThread()
     {
         delete m_cameraThread;
         m_cameraThread = nullptr;
-        wxLogError(_("Could not create the thread needed to load the data."));
+        wxLogError("Could not create the thread needed to retrieve the images from a camera.");
         return false;
     }
 
@@ -527,7 +539,9 @@ void OpenCVFrame::OnProperties(wxCommandEvent&)
            properties.push_back(wxString::Format("Current frame: %.0f", m_videoCapture->get(cv::CAP_PROP_POS_FRAMES) - 1.0));
            properties.push_back(wxString::Format("Current time: %s", time.FormatISOTime()));
            properties.push_back(wxString::Format("Total frame count: %.f", m_videoCapture->get(cv::CAP_PROP_FRAME_COUNT)));
+#if CV_VERSION_MAJOR > 4 || (CV_VERSION_MAJOR == 4 && CV_VERSION_MINOR >= 3 )
            properties.push_back(wxString::Format("Bitrate: %.0f kbits/s", m_videoCapture->get(cv::CAP_PROP_BITRATE)));
+#endif
         }
     }
 
