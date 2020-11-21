@@ -363,7 +363,7 @@ void OpenCVFrame::OnImage(wxCommandEvent&)
     static wxString fileName;
 
     fileName = wxFileSelector("Select Bitmap Image", "", fileName, "",
-        "Image files (*.jpg;*.png;*.tga;*.bmp)| *.jpg;*.png;*.tga;*.bmp",
+        "Image files (*.jpg;*.png;*.tga;*.bmp)|*.jpg;*.png;*.tga;*.bmp",
         wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if ( fileName.empty() )
@@ -406,7 +406,7 @@ void OpenCVFrame::OnVideo(wxCommandEvent&)
     static wxString fileName;
 
     fileName = wxFileSelector("Select Video", "", fileName, "",
-        "Video files (*.avi;*.mp4;*.mkv)| *.avi;*.mp4;*.mkv",
+        "Video files (*.avi;*.mp4;*.mkv)|*.avi;*.mp4;*.mkv",
         wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
     if ( fileName.empty() )
