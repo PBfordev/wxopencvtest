@@ -62,27 +62,19 @@ bool wxBitmapFromOpenCVPanel::SetBitmap(const wxBitmap& bitmap, const long timeG
 wxSize wxBitmapFromOpenCVPanel::DoGetBestClientSize() const
 {
     if ( !m_bitmap.IsOk() )
-        return FromDIP(wxSize(64, 48));
+        return FromDIP(wxSize(64, 48)); // completely arbitrary
 
-    const int maxWidth =  FromDIP(800);
-    const int maxHeight = FromDIP(600);
-
-    wxSize size;
-
-    size.SetWidth(wxMin(maxWidth, m_bitmap.GetWidth()));
-    size.SetHeight(wxMin(maxHeight, m_bitmap.GetHeight()));
-    return size;
+    return m_bitmap.GetSize();
 }
 
 void wxBitmapFromOpenCVPanel::OnPaint(wxPaintEvent&)
 {
     wxAutoBufferedPaintDC dc(this);
 
+    dc.Clear();
+
     if ( !m_bitmap.IsOk() )
-    {
-        dc.Clear();
         return;
-    }
 
     const wxSize clientSize = GetClientSize();
     wxPoint      offset = GetViewStart();
@@ -97,36 +89,6 @@ void wxBitmapFromOpenCVPanel::OnPaint(wxPaintEvent&)
 
     GetScrollPixelsPerUnit(&pixelsPerUnitX, &pixelsPerUnitY);
     offset.x *= pixelsPerUnitX; offset.y *= pixelsPerUnitY;
-
-    // fill the right part of the client area possibly not covered by the bitmap
-    if ( m_bitmap.GetWidth() - offset.x < clientSize.GetWidth() )
-    {
-        wxDCPenChanger   penChanger(dc, *wxBLACK_PEN);
-        wxDCBrushChanger brushChanger(dc, *wxBLACK_BRUSH);
-        wxRect           r;
-
-        r.SetX(m_bitmap.GetWidth());
-        r.SetY(offset.y);
-        r.SetWidth(clientSize.GetWidth() - r.GetX() + offset.x);
-        r.SetHeight(clientSize.GetHeight());
-
-        dc.DrawRectangle(r);
-    }
-
-    // fill the bottom part of the client area possibly not covered by the bitmap
-    if ( m_bitmap.GetHeight() - offset.y < clientSize.GetHeight() )
-    {
-        wxDCPenChanger   penChanger(dc, *wxBLACK_PEN);
-        wxDCBrushChanger brushChanger(dc, *wxBLACK_BRUSH);
-        wxRect           r;
-
-        r.SetX(offset.x);
-        r.SetY(m_bitmap.GetHeight());
-        r.SetWidth(m_bitmap.GetWidth());
-        r.SetHeight(clientSize.GetHeight() - r.GetY() + offset.y);
-
-        dc.DrawRectangle(r);
-    }
 
     // Draw info "overlay", always at the top left corner of the window
     // regardless of how the bitmap is scrolled.
