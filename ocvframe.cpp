@@ -79,6 +79,10 @@ wxThread::ExitCode CameraThread::Entry()
 
                 evt->SetPayload(frame);
                 m_eventSink->QueueEvent(evt);
+                // In a real code, the duration to sleep would normally
+                // be computed based on the camera framerate, time taken
+                // to process the image, and system clock tick resolution.
+                wxMilliSleep(30);
             }
             else // connection to camera lost
             {
@@ -104,10 +108,7 @@ wxThread::ExitCode CameraThread::Entry()
             evt->SetString("Unknown exception");
             m_eventSink->QueueEvent(evt);
             break;
-
         }
-
-
     }
 
     return static_cast<wxThread::ExitCode>(nullptr);
@@ -206,10 +207,7 @@ void OpenCVFrame::Clear()
     DeleteCameraThread();
 
     if ( m_videoCapture )
-    {
-        delete m_videoCapture;
-        m_videoCapture = nullptr;
-    }
+        wxDELETE(m_videoCapture);
 
     m_mode = Empty;
     m_sourceName.clear();
@@ -339,8 +337,7 @@ bool OpenCVFrame::StartCameraThread()
     m_cameraThread = new CameraThread(this, m_videoCapture);
     if ( m_cameraThread->Run() != wxTHREAD_NO_ERROR )
     {
-        delete m_cameraThread;
-        m_cameraThread = nullptr;
+        wxDELETE(m_cameraThread);
         wxLogError("Could not create the thread needed to retrieve the images from a camera.");
         return false;
     }
@@ -465,7 +462,8 @@ void OpenCVFrame::OnWebCam(wxCommandEvent&)
     useMJPEG = wxMessageBox("Press Yes to use MJPEG or No to use the default FourCC.\nMJPEG may be much faster, particularly at higher resolutions.",
         "WebCamera", wxYES_NO, this) == wxYES;
 
-    if ( StartCameraCapture(wxEmptyString, resolutions[resolutionIndex], useMJPEG ) )    {
+    if ( StartCameraCapture(wxEmptyString, resolutions[resolutionIndex], useMJPEG) )
+    {
         m_mode = WebCam;
         m_sourceName = "Default WebCam";
         UpdateFrameTitle();
@@ -476,7 +474,7 @@ void OpenCVFrame::OnWebCam(wxCommandEvent&)
 
 void OpenCVFrame::OnIPCamera(wxCommandEvent&)
 {
-    static wxString address = "rtsp://freja.hiof.no:1935/rtplive/_definst_/hessdalen03.stream";
+    static wxString address = "http://pendelcam.kip.uni-heidelberg.de/mjpg/video.mjpg";
 
     address = wxGetTextFromUser("Enter the URL including protocol, address, port etc.",
                                 "IP camera", address, this);
