@@ -350,8 +350,7 @@ void OpenCVFrame::DeleteCameraThread()
     if ( m_cameraThread )
     {
         m_cameraThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
-        delete m_cameraThread;
-        m_cameraThread = nullptr;
+        wxDELETE(m_cameraThread);
     }
 }
 
